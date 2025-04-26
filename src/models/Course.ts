@@ -1,20 +1,95 @@
-import { Schema, model, Document } from 'mongoose';
+import { Document, model, Schema } from 'mongoose';
 
-interface IUser extends Document {
-  fullName: string;
-  email: string;
-  password: string;
+interface IRequiredMaterial {
+  title: string;
+  author: string;
+  publisher: string;
+  year: number;
+  required: boolean;
 }
 
-const userSchema = new Schema<IUser>(
+interface IGradingPolicy {
+  description: string;
+  percentage: number;
+}
+
+interface IWeeklySchedule {
+  week: number;
+  topic: string;
+  readings: string;
+  assignment: string;
+}
+
+interface ICoursePolicy {
+  policyName: string;
+  description: string;
+}
+
+interface ISyllabus {
+  learningObjectives: string[];
+  requiredMaterials: IRequiredMaterial[];
+  gradingPolicy: IGradingPolicy[];
+  weeklySchedule: IWeeklySchedule[];
+  coursePolicies: ICoursePolicy[];
+}
+
+export interface ICourse extends Document {
+  name: string;
+  subject: string;
+  gradeLevel: string;
+  description: string;
+  instructorName: string;
+  isDraft: boolean;
+  currentStep: number;
+  syllabusmd: string;
+  syllabus: ISyllabus;
+}
+const courseSchema = new Schema<ICourse>(
   {
-    fullName: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
-    password: { type: String, required: true },
+    name: { type: String, required: true },
+    subject: { type: String, required: false },
+    gradeLevel: { type: String, required: false },
+    description: { type: String, required: true },
+    instructorName: { type: String, required: false },
+    syllabusmd: { type: String, required: false },
+    isDraft: { type: Boolean, default: false }, // <-- Added
+    currentStep: { type: Number, default: 1 }, // <-- Added
+    syllabus: {
+      learningObjectives: [{ type: String, required: false }],
+      requiredMaterials: [
+        {
+          title: { type: String, required: false },
+          author: { type: String, required: false },
+          publisher: { type: String, required: false },
+          year: { type: Number, required: false },
+          required: { type: Boolean, default: false },
+        },
+      ],
+      gradingPolicy: [
+        {
+          name: { type: String, required: false },
+          description: { type: String, required: false },
+          percentage: { type: Number, required: false },
+        },
+      ],
+      weeklySchedule: [
+        {
+          week: { type: Number, required: false },
+          topic: { type: String, required: false },
+          readings: { type: String, required: false },
+          assignment: { type: String, required: false },
+        },
+      ],
+      coursePolicies: [
+        {
+          policyName: { type: String, required: false },
+          description: { type: String, required: false },
+        },
+      ],
+    },
   },
   { timestamps: true },
 );
+const Course = model<ICourse>('Course', courseSchema);
 
-const User = model<IUser>('User', userSchema);
-
-export default User;
+export default Course;

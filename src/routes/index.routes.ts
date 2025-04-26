@@ -1,10 +1,10 @@
 import express, { Router } from 'express';
 import authRoutes from './authRoutes';
-import aiRoutes from './aiRoutes';
+import assignmentRoutes from './assignmentRoutes';
 
 const router: Router = express.Router();
 
 router.use('/auth', authRoutes);
-router.use('/ai', aiRoutes);
+router.use('/assignment', assignmentRoutes);
 
 export default router;

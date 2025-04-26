@@ -1,10 +1,4 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import dotenv from 'dotenv';
-dotenv.config();
-
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
-console.log('🚀 ~ process.env.GEMINI_API_KEY:', process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+import aiModel from './aiModel';
 
 interface GenerateRequestBody {
   assignmentType: string;
@@ -16,7 +10,7 @@ interface GenerateRequestBody {
   learningObjectives?: string;
 }
 
-export class AIService {
+export default class AIAssignmentService {
   public async generateAssignmentContent(
     body: GenerateRequestBody,
   ): Promise<Record<string, string>> {
@@ -37,7 +31,7 @@ export class AIService {
 
     try {
       const requests = Object.entries(prompts).map(async ([section, prompt]) => {
-        const result = await model.generateContent(prompt);
+        const result = await aiModel.generateContent(prompt);
         const text = result.response.candidates?.[0]?.content?.parts?.[0]?.text;
 
         return {
