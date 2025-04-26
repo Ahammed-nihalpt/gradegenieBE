@@ -20,7 +20,7 @@ export class AuthController {
 
       const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET || 'your_jwt_secret');
 
-      res.status(201).json({ message: 'User created', token });
+      res.status(201).json({ message: 'User created', token: `Bearer ${token}` });
     } catch (error) {
       res.status(500).json({ message: 'Internal server error' });
     }
@@ -44,7 +44,15 @@ export class AuthController {
 
       const token = jwt.sign({ userId: user._id }, 'your_jwt_secret');
 
-      res.status(200).json({ message: 'Login successful', token });
+      res
+        .status(200)
+        .json({
+          message: 'Login successful',
+          token: `Bearer ${token}`,
+          id: user._id,
+          name: user.fullName,
+          email: user.email,
+        });
     } catch (error) {
       res.status(500).json({ message: 'Internal server error' });
     }
