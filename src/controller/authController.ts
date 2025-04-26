@@ -18,7 +18,7 @@ export class AuthController {
       const newUser = new User({ fullName, email, password: hashedPassword });
       await newUser.save();
 
-      const token = jwt.sign({ userId: newUser._id }, 'your_jwt_secret', { expiresIn: '1h' });
+      const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET || 'your_jwt_secret');
 
       res.status(201).json({ message: 'User created', token });
     } catch (error) {
@@ -42,7 +42,7 @@ export class AuthController {
         return;
       }
 
-      const token = jwt.sign({ userId: user._id }, 'your_jwt_secret', { expiresIn: '1h' });
+      const token = jwt.sign({ userId: user._id }, 'your_jwt_secret');
 
       res.status(200).json({ message: 'Login successful', token });
     } catch (error) {
