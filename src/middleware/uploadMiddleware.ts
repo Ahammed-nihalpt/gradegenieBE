@@ -2,7 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import multer from 'multer';
 import cloudinary from '../config/cloudinary'; // Adjust the import path
 import { v4 as uuidv4 } from 'uuid';
-import { FileProcessor } from '../utilities/FileProcessor';
+import { FileProcessor } from '../utilities/fileProcessor';
 
 // Setup multer storage
 const storage = multer.memoryStorage();

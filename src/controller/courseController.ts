@@ -45,7 +45,7 @@ export class CourseController {
   async getCourse(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
-      const course = await Course.findById(id);
+      const course = await Course.findById(id).populate('assignments').exec();
       if (!course) {
         res.status(404).json({ message: 'Course not found.' });
         return;
@@ -72,7 +72,7 @@ export class CourseController {
           const assignmentCount = await Assignment.countDocuments({ courseId: course._id });
           return {
             ...course.toObject(), // Convert Mongoose doc to plain JS object
-            assignments: assignmentCount,
+            assignmentCount: assignmentCount,
           };
         }),
       );

@@ -9,9 +9,10 @@ interface IAssignment extends Document {
   description: string;
   learningObjectives?: string;
   totalPoints: number;
-  responseInstructions: string;
+  instructions: string;
   userId: Types.ObjectId;
   status?: string;
+  rubric?: string;
 }
 
 const assignmentSchema = new Schema<IAssignment>(
@@ -25,7 +26,8 @@ const assignmentSchema = new Schema<IAssignment>(
     description: { type: String, required: false },
     learningObjectives: { type: String },
     totalPoints: { type: Number, required: false },
-    responseInstructions: { type: String, required: false },
+    instructions: { type: String, required: false },
+    rubric: { type: String, required: false },
     status: { type: String, default: 'draft' },
   },
   { timestamps: true },

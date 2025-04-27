@@ -43,7 +43,8 @@ export class AIController {
         description,
         learningObjectives,
         totalPoints,
-        responseInstructions,
+        instructions,
+        rubric,
         userId,
       } = req.body;
 
@@ -57,7 +58,8 @@ export class AIController {
         description,
         learningObjectives,
         totalPoints,
-        responseInstructions,
+        rubric,
+        instructions,
         userId,
         submission: [], // Empty initial submissions
       });

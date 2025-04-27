@@ -25,10 +25,8 @@ router.post(
     body('courseId').isString().withMessage('Course is required'),
     body('userId').isString().withMessage('User is required'),
     body('totalPoints').optional().isNumeric().withMessage('Total points must be a number'),
-    body('responseInstructions')
-      .optional()
-      .isString()
-      .withMessage('Response instructions are required'),
+    body('instructions').optional().isString().withMessage('Response instructions are required'),
+    body('rubric').optional().isString().withMessage('Rubric are required'),
     body('dueDate').optional().optional().isString().withMessage('Due date must be a string'),
     body('description').optional().isString().withMessage('Description is required'),
     body('learningObjectives')

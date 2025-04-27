@@ -41,6 +41,7 @@ export interface ICourse extends Document {
   instructorName: string;
   isDraft: boolean;
   currentStep: number;
+  code: number;
   syllabusmd: string;
   syllabus: ISyllabus;
   userId: Types.ObjectId;
@@ -52,6 +53,7 @@ const courseSchema = new Schema<ICourse>(
     subject: { type: String, required: false },
     gradeLevel: { type: String, required: false },
     description: { type: String, required: true },
+    code: { type: Number },
     instructorName: { type: String, required: false },
     syllabusmd: { type: String, required: false },
     isDraft: { type: Boolean, default: false }, // <-- Added
@@ -92,8 +94,18 @@ const courseSchema = new Schema<ICourse>(
       ],
     },
   },
-  { timestamps: true },
+  {
+    timestamps: true,
+    toJSON: { virtuals: true }, // Include virtuals when document is converted to JSON
+    toObject: { virtuals: true },
+  },
 );
+
+courseSchema.virtual('assignments', {
+  ref: 'Assignment',
+  localField: '_id',
+  foreignField: 'courseId',
+});
 const Course = model<ICourse>('Course', courseSchema);
 
 export default Course;
