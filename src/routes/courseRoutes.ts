@@ -6,12 +6,15 @@ const router = express.Router();
 const courseController = new CourseController();
 
 // Save or Update course (draft or progress)
-router.post('/course/save', courseController.saveCourse);
+router.post('/save', courseController.saveCourse);
 
 // Get course by id
-router.get('/course/:id', courseController.getCourse);
+router.get('/:id', courseController.getCourse);
+
+// Get all courses by user id
+router.get('/by/user/:userId', courseController.getCourseByUser);
 
 // Finalize course (mark draft as complete)
-router.post('/course/finalize/:id', courseController.finalizeCourse);
+router.post('/finalize/:id', courseController.finalizeCourse);
 
 export default router;

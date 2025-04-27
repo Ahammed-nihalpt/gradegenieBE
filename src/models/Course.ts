@@ -1,4 +1,4 @@
-import { Document, model, Schema } from 'mongoose';
+import { Document, model, Schema, Types } from 'mongoose';
 
 interface IRequiredMaterial {
   title: string;
@@ -43,9 +43,11 @@ export interface ICourse extends Document {
   currentStep: number;
   syllabusmd: string;
   syllabus: ISyllabus;
+  userId: Types.ObjectId;
 }
 const courseSchema = new Schema<ICourse>(
   {
+    userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     name: { type: String, required: true },
     subject: { type: String, required: false },
     gradeLevel: { type: String, required: false },
@@ -55,6 +57,8 @@ const courseSchema = new Schema<ICourse>(
     isDraft: { type: Boolean, default: false }, // <-- Added
     currentStep: { type: Number, default: 1 }, // <-- Added
     syllabus: {
+      instructor: { type: String, required: false },
+      term: { type: String, required: false },
       learningObjectives: [{ type: String, required: false }],
       requiredMaterials: [
         {

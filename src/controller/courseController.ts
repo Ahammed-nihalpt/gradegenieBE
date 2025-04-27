@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import Course from '../models/Course';
+import Assignment from '../models/Assignment';
 
 export class CourseController {
   // Create or Update Course (multi-step)
@@ -26,6 +27,9 @@ export class CourseController {
       } else {
         // Create new draft
         course = await Course.create(courseData);
+        // Return the course ID after creating a new course
+        res.status(200).json({ courseId: course._id });
+        return;
       }
 
       res.status(200).json({ course });
@@ -48,6 +52,32 @@ export class CourseController {
       }
 
       res.status(200).json({ course });
+      return;
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: 'Server Error' });
+      return;
+    }
+  }
+  async getCourseByUser(req: Request, res: Response): Promise<void> {
+    try {
+      const { userId } = req.params;
+      const courses = await Course.find({ userId });
+      if (!courses || courses.length === 0) {
+        res.status(404).json({ message: 'Courses not found.' });
+        return;
+      }
+      const coursesWithAssignments = await Promise.all(
+        courses.map(async (course) => {
+          const assignmentCount = await Assignment.countDocuments({ courseId: course._id });
+          return {
+            ...course.toObject(), // Convert Mongoose doc to plain JS object
+            assignments: assignmentCount,
+          };
+        }),
+      );
+
+      res.status(200).json({ courses: coursesWithAssignments });
       return;
     } catch (error) {
       console.error(error);
