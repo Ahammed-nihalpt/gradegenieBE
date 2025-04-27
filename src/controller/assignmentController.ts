@@ -38,12 +38,13 @@ export class AIController {
         assignmentType,
         subType,
         title,
-        course,
+        courseId,
         dueDate,
         description,
         learningObjectives,
         totalPoints,
         responseInstructions,
+        userId,
       } = req.body;
 
       // Create a new assignment with the data from request body
@@ -51,12 +52,13 @@ export class AIController {
         assignmentType,
         subType,
         title,
-        course,
+        courseId,
         dueDate,
         description,
         learningObjectives,
         totalPoints,
         responseInstructions,
+        userId,
         submission: [], // Empty initial submissions
       });
 
@@ -97,6 +99,56 @@ export class AIController {
         success: true,
         message: 'Assignment updated successfully',
         assignment: updatedAssignment,
+      });
+    } catch (error: any) {
+      console.error(error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  };
+  public getByUserAssignment = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { userId } = req.params; // Get the assignment ID from the URL params
+
+      const assignment = await Assignment.find({ userId }).populate('courseId', 'name'); // Populate courseId with title field;
+
+      if (!assignment) {
+        res.status(404).json({ success: false, message: 'Assignment not found' });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        assignment: assignment,
+      });
+    } catch (error: any) {
+      console.error(error);
+      res.status(500).json({ success: false, error: error.message });
+    }
+  };
+
+  public getAssignmentById = async (req: Request, res: Response): Promise<void> => {
+    try {
+      const { id } = req.params; // Get the assignment ID from the URL params
+
+      const assignment = await Assignment.findById(id)
+        .populate('courseId') // populate course details
+        .populate({
+          path: 'submissions', // virtual populate field
+          populate: {
+            path: 'studentId', // populate inside each submission
+            model: 'Student', // model name of Student
+            select: 'name email', // 🔥 select only needed fields (optional)
+          },
+        })
+        .exec();
+      if (!assignment) {
+        res.status(404).json({ success: false, message: 'Assignment not found' });
+        return;
+      }
+
+      res.status(200).json({
+        success: true,
+        assignment: assignment,
       });
     } catch (error: any) {
       console.error(error);

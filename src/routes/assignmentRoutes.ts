@@ -22,11 +22,15 @@ router.post(
     body('assignmentType').isString().withMessage('Assignment type is required'),
     body('subType').isArray().withMessage('SubType should be an array'),
     body('title').isString().withMessage('Title is required'),
-    body('course').isString().withMessage('Course is required'),
-    body('totalPoints').isNumeric().withMessage('Total points must be a number'),
-    body('responseInstructions').isString().withMessage('Response instructions are required'),
-    body('dueDate').optional().isString().withMessage('Due date must be a string'),
-    body('description').isString().withMessage('Description is required'),
+    body('courseId').isString().withMessage('Course is required'),
+    body('userId').isString().withMessage('User is required'),
+    body('totalPoints').optional().isNumeric().withMessage('Total points must be a number'),
+    body('responseInstructions')
+      .optional()
+      .isString()
+      .withMessage('Response instructions are required'),
+    body('dueDate').optional().optional().isString().withMessage('Due date must be a string'),
+    body('description').optional().isString().withMessage('Description is required'),
     body('learningObjectives')
       .optional()
       .isString()
@@ -54,5 +58,8 @@ router.put(
   ],
   aiController.editAssignment,
 );
+
+router.get('/by/user/:userId', aiController.getByUserAssignment);
+router.get('/:id', aiController.getAssignmentById);
 
 export default router;

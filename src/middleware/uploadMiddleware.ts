@@ -1,44 +1,54 @@
-// src/middleware/uploadMiddleware.ts
 import { Request, Response, NextFunction } from 'express';
 import multer from 'multer';
-import cloudinary from '../config/cloudinary';
+import cloudinary from '../config/cloudinary'; // Adjust the import path
 import { v4 as uuidv4 } from 'uuid';
+import { FileProcessor } from '../utilities/FileProcessor';
 
+// Setup multer storage
 const storage = multer.memoryStorage();
 const upload = multer({ storage });
 
-// This is the middleware for handling the upload and forwarding it to Cloudinary
+// Middleware for handling both single and multiple file uploads
 export const uploadMiddleware: Array<
   (req: Request, res: Response, next: NextFunction) => void | Promise<void>
 > = [
-  upload.single('file'),
+  upload.any(), // Accepts both single and multiple files (dynamically)
   async (req: Request, res: Response, next: NextFunction) => {
-    if (!req.file) {
-      res.status(400).json({ error: 'No file uploaded' });
+    if (!req.files || (req.files as Express.Multer.File[]).length === 0) {
+      res.status(400).json({ error: 'No files uploaded' });
       return;
     }
 
     try {
-      const fileBuffer = req.file.buffer as Buffer;
+      const uploadedFiles: string[] = [];
 
-      // Upload the file to Cloudinary
-      const uploadResponse = await cloudinary.uploader.upload(
-        `data:${req.file.mimetype};base64,${fileBuffer.toString('base64')}`,
-        {
-          public_id: uuidv4(),
-          resource_type: 'auto',
-        },
-      );
+      // Loop through the uploaded files and upload each to Cloudinary
+      for (const file of req.files as Express.Multer.File[]) {
+        const fileBuffer = file.buffer as Buffer;
 
-      // Add the Cloudinary URL and public_id to the request object
-      req.body.url = uploadResponse.secure_url;
-      req.body.public_id = uploadResponse.public_id;
+        // Upload each file to Cloudinary
+        const uploadResponse = await cloudinary.uploader.upload(
+          `data:${file.mimetype};base64,${fileBuffer.toString('base64')}`,
+          {
+            public_id: uuidv4(),
+            resource_type: 'auto',
+          },
+        );
+
+        // Add the file URL to the uploaded files array
+        uploadedFiles.push(uploadResponse.secure_url);
+      }
+      const fileProcessor = new FileProcessor(req.files as Express.Multer.File[]);
+      const combinedText = await fileProcessor.extractAndCombineText();
+      // Assign the array of file URLs to req.body.files
+      req.body.files = uploadedFiles;
+      req.body.content = combinedText;
 
       // Proceed to the next middleware or route handler
       next();
     } catch (error) {
-      res.status(500).json({ error: 'Failed to upload file to Cloudinary' });
-      return;
+      console.error('Cloudinary upload error:', error);
+      res.status(500).json({ error: 'Failed to upload files to Cloudinary' });
     }
   },
 ];

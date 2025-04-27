@@ -1,11 +1,10 @@
-// src/controller/submissionController.ts
 import { Request, Response } from 'express';
-import Submission from '../models/AssignmentSubmission';
-import { validationResult } from 'express-validator/lib';
+import { validationResult } from 'express-validator';
+import Submission from '../models/AssignmentSubmission'; // adjust the path if needed
 
 export class AssignmentSubmissionController {
-  // Add a new submission or continue an existing one
-  async addSubmission(req: Request, res: Response): Promise<void> {
+  // Create a new submission
+  async createSubmission(req: Request, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
       if (!errors.isEmpty()) {
@@ -13,26 +12,66 @@ export class AssignmentSubmissionController {
         return;
       }
 
-      const { assignmentId, studentId, url } = req.body;
-      const fileUrl = url || '';
-      // Check if a submission exists for this student for the given assignment
-      let submission = await Submission.findOne({ assignmentId, studentId });
-      if (!submission) {
-        // Create a new submission if it doesn't exist
-        submission = new Submission({ assignmentId, studentId, fileUrl, status: 'pending' });
-        await submission.save();
-        res.status(201).json(submission);
-        return;
-      }
+      const { files, ...submissionData } = req.body;
 
-      // If submission exists, return the existing submission data
-      res.status(200).json(submission);
+      submissionData.aiCheckerResults = {
+        score: 92,
+        confidence: 'High',
+        details: [
+          {
+            section: 'Introduction',
+            aiProbability: 0.15,
+            humanProbability: 0.85,
+          },
+          { section: 'Main Body', aiProbability: 0.08, humanProbability: 0.92 },
+          { section: 'Conclusion', aiProbability: 0.12, humanProbability: 0.88 },
+        ],
+      };
+
+      submissionData.subScores = [
+        {
+          name: 'Content',
+          score: 0,
+          maxScore: 100,
+          rationale: 'The essay covers the topic comprehensively and uses reliable sources.',
+        },
+        {
+          name: 'Organization',
+          score: 0,
+          maxScore: 100,
+          rationale:
+            'Good structure overall, but transitions between paragraphs could be smoother.',
+        },
+        {
+          name: 'Grammar',
+          score: 0,
+          maxScore: 100,
+          rationale: 'A few minor grammatical errors, but generally well-written.',
+        },
+        {
+          name: 'Citations',
+          score: 0,
+          maxScore: 100,
+          rationale: 'Sources are cited correctly, but could use more diverse references.',
+        },
+      ];
+
+      submissionData.fileUrl = files || []; // Assign the uploaded file URLs to the submission data
+
+      const submission = new Submission(submissionData);
+      await submission.save();
+
+      res.status(201).json({
+        message: 'Submission created successfully',
+        data: submission,
+      });
     } catch (err) {
+      console.error('Error creating submission:', err);
       res.status(500).json({ message: 'Server error', error: err });
     }
   }
 
-  // Edit an existing submission (update grade or status)
+  // Update an existing submission
   async editSubmission(req: Request, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
@@ -41,8 +80,12 @@ export class AssignmentSubmissionController {
         return;
       }
 
-      const { grade, status } = req.body;
       const submissionId = req.params.id;
+      const updateData = req.body;
+
+      if (updateData.score) {
+        updateData.status = 'Graded';
+      }
 
       const submission = await Submission.findById(submissionId);
       if (!submission) {
@@ -50,16 +93,36 @@ export class AssignmentSubmissionController {
         return;
       }
 
-      if (grade !== undefined) {
-        submission.grade = grade;
-      }
-      if (status !== undefined) {
-        submission.status = status;
-      }
+      // Update only the fields provided
+      Object.assign(submission, updateData);
 
       await submission.save();
-      res.status(200).json(submission);
+
+      res.status(200).json({
+        message: 'Submission updated successfully',
+        data: submission,
+      });
     } catch (err) {
+      console.error('Error updating submission:', err);
+      res.status(500).json({ message: 'Server error', error: err });
+    }
+  }
+  async getById(req: Request, res: Response): Promise<void> {
+    try {
+      const { id, assignmentId } = req.params;
+
+      const submission = await Submission.findOne({ assignmentId, _id: id });
+      if (!submission) {
+        res.status(404).json({ message: 'Submission not found' });
+        return;
+      }
+
+      res.status(200).json({
+        message: 'Submission found',
+        submission,
+      });
+    } catch (err) {
+      console.error('Error updating submission:', err);
       res.status(500).json({ message: 'Server error', error: err });
     }
   }
