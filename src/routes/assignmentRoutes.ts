@@ -1,7 +1,6 @@
 import express from 'express';
 import { body } from 'express-validator';
 import { AIController } from '../controller/assignmentController';
-import { uploadMiddleware } from '../middleware/uploadMiddleware';
 
 const router = express.Router();
 const aiController = new AIController();
@@ -18,6 +17,7 @@ const validateAiContent = [
 router.post('/ai/generate', validateAiContent, aiController.generateContent);
 router.post(
   '/add',
+
   [
     body('assignmentType').isString().withMessage('Assignment type is required'),
     body('subType').isArray().withMessage('SubType should be an array'),

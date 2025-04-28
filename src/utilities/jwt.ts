@@ -3,7 +3,7 @@ import jwt from 'jsonwebtoken';
 export const verifyToken = (token: string) => {
   try {
     // getting secret key from dotenv
-    const secretKey = process.env.JWT_SECRET_KEY;
+    const secretKey = process.env.JWT_SECRET;
     // verifying the token
     return jwt.verify(token, secretKey || 'dasfasdfasdfasdf434');
   } catch (err) {

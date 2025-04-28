@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
+import { generateTokenForSftp } from '../utilities/jwt';
 
 export class AuthController {
   async signup(req: Request, res: Response): Promise<void> {
@@ -42,17 +43,14 @@ export class AuthController {
         return;
       }
 
-      const token = jwt.sign({ userId: user._id }, 'your_jwt_secret');
-
-      res
-        .status(200)
-        .json({
-          message: 'Login successful',
-          token: `Bearer ${token}`,
-          id: user._id,
-          name: user.fullName,
-          email: user.email,
-        });
+      const token = generateTokenForSftp({ userId: user._id });
+      res.status(200).json({
+        message: 'Login successful',
+        token: `Bearer ${token}`,
+        id: user._id,
+        name: user.fullName,
+        email: user.email,
+      });
     } catch (error) {
       res.status(500).json({ message: 'Internal server error' });
     }

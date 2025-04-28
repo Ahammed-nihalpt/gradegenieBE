@@ -13,4 +13,10 @@ router.post('/add', uploadMiddleware, submissionController.createSubmission);
 router.put('/edit/:id', submissionController.editSubmission);
 router.get('/:assignmentId/:id', submissionController.getById);
 
+router.get(
+  '/total/by/month/:userId',
+
+  submissionController.getTotalSubmissionsThisMonth,
+);
+
 export default router;

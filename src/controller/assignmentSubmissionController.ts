@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import Submission from '../models/AssignmentSubmission'; // adjust the path if needed
+import mongoose from 'mongoose';
 
 export class AssignmentSubmissionController {
   // Create a new submission
@@ -124,6 +125,65 @@ export class AssignmentSubmissionController {
     } catch (err) {
       console.error('Error updating submission:', err);
       res.status(500).json({ message: 'Server error', error: err });
+    }
+  }
+
+  async getTotalSubmissionsThisMonth(req: Request, res: Response): Promise<void> {
+    try {
+      const { userId } = req.params;
+      const now = new Date();
+
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+
+      const totalSubmissions = await Submission.aggregate([
+        {
+          $match: {
+            createdAt: { $gte: startOfMonth, $lte: endOfMonth },
+          },
+        },
+        {
+          $lookup: {
+            from: 'assignments', // Collection name of Assignment
+            localField: 'assignmentId',
+            foreignField: '_id',
+            as: 'assignment',
+          },
+        },
+        {
+          $unwind: '$assignment',
+        },
+        {
+          $lookup: {
+            from: 'courses', // Collection name of Course
+            localField: 'assignment.courseId',
+            foreignField: '_id',
+            as: 'course',
+          },
+        },
+        {
+          $unwind: '$course',
+        },
+        {
+          $match: {
+            'course.userId': new mongoose.Types.ObjectId(userId),
+          },
+        },
+        {
+          $count: 'total',
+        },
+      ]);
+
+      res.status(200).json({
+        message: 'Total submissions this month fetched successfully',
+        total: totalSubmissions && totalSubmissions.length === 1 ? totalSubmissions[0].total : 0,
+      });
+      return;
+    } catch (err) {
+      console.error('Error fetching total submissions:', err);
+      res.status(500).json({ message: 'Server error', error: err });
+      return;
     }
   }
 }

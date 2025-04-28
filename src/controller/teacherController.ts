@@ -1,9 +1,9 @@
 import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
-import Student from '../models/Student'; // adjust path if needed
+import Teacher from '../models/Teacher'; // Adjust the path if needed
 
-export class StudentController {
-  // Create a new student
+export class TeacherController {
+  // Create a new teacher
   async create(req: Request, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
@@ -14,20 +14,20 @@ export class StudentController {
 
       const { files, ...data } = req.body;
 
-      const student = new Student(data);
-      await student.save();
+      const teacher = new Teacher(data);
+      await teacher.save();
 
       res.status(201).json({
-        message: 'Student created successfully',
-        data: student,
+        message: 'Teacher created successfully',
+        data: teacher,
       });
     } catch (err) {
-      console.error('Error creating student:', err);
+      console.error('Error creating teacher:', err);
       res.status(500).json({ message: 'Server error', error: err });
     }
   }
 
-  // Update an existing student
+  // Update an existing teacher
   async edit(req: Request, res: Response): Promise<void> {
     try {
       const errors = validationResult(req);
@@ -39,63 +39,64 @@ export class StudentController {
       const id = req.params.id;
       const updateData = req.body;
 
-      const student = await Student.findById(id);
-      if (!student) {
-        res.status(404).json({ message: 'Student not found' });
+      const teacher = await Teacher.findById(id);
+      if (!teacher) {
+        res.status(404).json({ message: 'Teacher not found' });
         return;
       }
 
-      Object.assign(student, updateData);
-      await student.save();
+      Object.assign(teacher, updateData);
+
+      await teacher.save();
 
       res.status(200).json({
-        message: 'Student updated successfully',
-        data: student,
+        message: 'Teacher updated successfully',
+        data: teacher,
       });
     } catch (err) {
-      console.error('Error updating student:', err);
+      console.error('Error updating teacher:', err);
       res.status(500).json({ message: 'Server error', error: err });
     }
   }
 
-  // Get student by ID
+  // Get teacher by ID
   async getById(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;
 
-      const student = await Student.findById(id);
-      if (!student) {
-        res.status(404).json({ message: 'Student not found' });
+      const teacher = await Teacher.findById(id);
+      if (!teacher) {
+        res.status(404).json({ message: 'Teacher not found' });
         return;
       }
 
       res.status(200).json({
-        message: 'Student found',
-        data: student,
+        message: 'Teacher found',
+        teacher,
       });
     } catch (err) {
-      console.error('Error fetching student by ID:', err);
+      console.error('Error fetching teacher:', err);
       res.status(500).json({ message: 'Server error', error: err });
     }
   }
 
-  // Get students by userId
+  // Get teacher(s) by userId
   async getByUserId(req: Request, res: Response): Promise<void> {
     try {
       const { userId } = req.params;
 
-      const students = await Student.find({ userId });
-      if (!students.length) {
-        res.status(404).json({ message: 'No students found for this user' });
+      const teachers = await Teacher.find({ userId });
+      if (!teachers.length) {
+        res.status(404).json({ message: 'No teachers found for this user' });
         return;
       }
 
       res.status(200).json({
-        message: 'Students found',
-        data: students,
+        message: 'Teachers found',
+        teachers,
       });
     } catch (err) {
-      console.error('Error fetching students by userId:', err);
+      console.error('Error fetching teacher(s):', err);
       res.status(500).json({ message: 'Server error', error: err });
     }
   }

@@ -1,12 +1,13 @@
 import express from 'express';
-import { StudentController } from '../controller/studentController';
+import { StudentController } from '../controller/studentController'; // adjust path if needed
 
 const router = express.Router();
-const submissionController = new StudentController();
+const studentController = new StudentController();
 
-router.post('/add', submissionController.create);
-router.put('/edit/:id', submissionController.edit);
-router.get('/:id', submissionController.getById);
-router.get('/by/user/:userId', submissionController.getByUserId);
+// Routes
+router.post('/add', studentController.create);
+router.put('/edit/:id', studentController.edit);
+router.get('/:id', studentController.getById);
+router.get('/by/user/:userId', studentController.getByUserId);
 
 export default router;
