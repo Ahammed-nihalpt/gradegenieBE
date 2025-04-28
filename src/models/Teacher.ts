@@ -14,7 +14,7 @@ const teacherSchema = new Schema<ITeacher>(
     class: { type: String, required: false },
     userId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 // Model

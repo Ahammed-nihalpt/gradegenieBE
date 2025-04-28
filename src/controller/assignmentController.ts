@@ -10,7 +10,10 @@ export class AIController {
     this.aiAssignmentService = new AIAssignmentService();
   }
 
-  public generateContent = async (req: Request, res: Response): Promise<void> => {
+  public generateContent = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       res.status(400).json({ success: false, errors: errors.array() });
@@ -18,7 +21,9 @@ export class AIController {
     }
 
     try {
-      const result = await this.aiAssignmentService.generateAssignmentContent(req.body);
+      const result = await this.aiAssignmentService.generateAssignmentContent(
+        req.body
+      );
       res.status(200).json({ success: true, data: result });
     } catch (error: any) {
       console.error(error);
@@ -79,7 +84,10 @@ export class AIController {
   };
 
   // Edit an existing assignment
-  public editAssignment = async (req: Request, res: Response): Promise<void> => {
+  public editAssignment = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       res.status(400).json({ success: false, errors: errors.array() });
@@ -90,10 +98,16 @@ export class AIController {
       const { id } = req.params; // Get the assignment ID from the URL params
       const updateData = req.body; // Get the updated data from the request body
 
-      const updatedAssignment = await Assignment.findByIdAndUpdate(id, updateData, { new: true });
+      const updatedAssignment = await Assignment.findByIdAndUpdate(
+        id,
+        updateData,
+        { new: true }
+      );
 
       if (!updatedAssignment) {
-        res.status(404).json({ success: false, message: 'Assignment not found' });
+        res
+          .status(404)
+          .json({ success: false, message: 'Assignment not found' });
         return;
       }
 
@@ -107,14 +121,22 @@ export class AIController {
       res.status(500).json({ success: false, error: error.message });
     }
   };
-  public getByUserAssignment = async (req: Request, res: Response): Promise<void> => {
+  public getByUserAssignment = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
     try {
       const { userId } = req.params; // Get the assignment ID from the URL params
 
-      const assignment = await Assignment.find({ userId }).populate('courseId', 'name'); // Populate courseId with title field;
+      const assignment = await Assignment.find({ userId }).populate(
+        'courseId',
+        'name'
+      ); // Populate courseId with title field;
 
       if (!assignment) {
-        res.status(404).json({ success: false, message: 'Assignment not found' });
+        res
+          .status(404)
+          .json({ success: false, message: 'Assignment not found' });
         return;
       }
 
@@ -128,7 +150,10 @@ export class AIController {
     }
   };
 
-  public getAssignmentById = async (req: Request, res: Response): Promise<void> => {
+  public getAssignmentById = async (
+    req: Request,
+    res: Response
+  ): Promise<void> => {
     try {
       const { id } = req.params; // Get the assignment ID from the URL params
 
@@ -144,7 +169,9 @@ export class AIController {
         })
         .exec();
       if (!assignment) {
-        res.status(404).json({ success: false, message: 'Assignment not found' });
+        res
+          .status(404)
+          .json({ success: false, message: 'Assignment not found' });
         return;
       }
 

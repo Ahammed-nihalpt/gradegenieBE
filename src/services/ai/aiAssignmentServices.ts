@@ -12,10 +12,17 @@ interface GenerateRequestBody {
 
 export default class AIAssignmentService {
   public async generateAssignmentContent(
-    body: GenerateRequestBody,
+    body: GenerateRequestBody
   ): Promise<Record<string, string>> {
-    const { assignmentType, subType, title, course, description, learningObjectives, dueDate } =
-      body;
+    const {
+      assignmentType,
+      subType,
+      title,
+      course,
+      description,
+      learningObjectives,
+      dueDate,
+    } = body;
 
     const prompts = this.buildPrompts(
       assignmentType,
@@ -24,21 +31,24 @@ export default class AIAssignmentService {
       course,
       description,
       learningObjectives,
-      dueDate,
+      dueDate
     );
 
     const results: Record<string, string> = {};
 
     try {
-      const requests = Object.entries(prompts).map(async ([section, prompt]) => {
-        const result = await aiModel.generateContent(prompt);
-        const text = result.response.candidates?.[0]?.content?.parts?.[0]?.text;
+      const requests = Object.entries(prompts).map(
+        async ([section, prompt]) => {
+          const result = await aiModel.generateContent(prompt);
+          const text =
+            result.response.candidates?.[0]?.content?.parts?.[0]?.text;
 
-        return {
-          section,
-          content: text ?? '',
-        };
-      });
+          return {
+            section,
+            content: text ?? '',
+          };
+        }
+      );
 
       const responses = await Promise.all(requests);
 
@@ -71,7 +81,7 @@ export default class AIAssignmentService {
     course: string,
     description: string,
     learningObjectives?: string,
-    dueDate?: string,
+    dueDate?: string
   ): Record<string, string> {
     const prompts: Record<string, string> = {};
 

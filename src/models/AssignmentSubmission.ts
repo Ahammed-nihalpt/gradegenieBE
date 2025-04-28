@@ -79,7 +79,11 @@ interface ISubmission extends Document {
 
 const submissionSchema = new Schema<ISubmission>(
   {
-    assignmentId: { type: Schema.Types.ObjectId, ref: 'Assignment', required: true },
+    assignmentId: {
+      type: Schema.Types.ObjectId,
+      ref: 'Assignment',
+      required: true,
+    },
     studentId: { type: Schema.Types.ObjectId, ref: 'Student' },
     studentName: { type: String },
     fileName: { type: String },
@@ -165,7 +169,7 @@ const submissionSchema = new Schema<ISubmission>(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 const Submission = model<ISubmission>('Submission', submissionSchema);

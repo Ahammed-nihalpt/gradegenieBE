@@ -1,7 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { verifyToken } from '../utilities/jwt';
 
-export function authenticateToken(req: Request, res: Response, next: NextFunction): void {
+export function authenticateToken(
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {

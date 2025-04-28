@@ -19,7 +19,11 @@ export class CourseController {
 
       if (courseId) {
         // Update existing draft
-        course = await Course.findByIdAndUpdate(courseId, { ...courseData }, { new: true });
+        course = await Course.findByIdAndUpdate(
+          courseId,
+          { ...courseData },
+          { new: true }
+        );
         if (!course) {
           res.status(404).json({ message: 'Course not found.' });
           return;
@@ -69,12 +73,14 @@ export class CourseController {
       }
       const coursesWithAssignments = await Promise.all(
         courses.map(async (course) => {
-          const assignmentCount = await Assignment.countDocuments({ courseId: course._id });
+          const assignmentCount = await Assignment.countDocuments({
+            courseId: course._id,
+          });
           return {
             ...course.toObject(), // Convert Mongoose doc to plain JS object
             assignmentCount: assignmentCount,
           };
-        }),
+        })
       );
 
       res.status(200).json({ courses: coursesWithAssignments });
@@ -91,14 +97,20 @@ export class CourseController {
     try {
       const { id } = req.params;
 
-      const course = await Course.findByIdAndUpdate(id, { isDraft: false }, { new: true });
+      const course = await Course.findByIdAndUpdate(
+        id,
+        { isDraft: false },
+        { new: true }
+      );
 
       if (!course) {
         res.status(404).json({ message: 'Course not found.' });
         return;
       }
 
-      res.status(200).json({ message: 'Course finalized successfully.', course });
+      res
+        .status(200)
+        .json({ message: 'Course finalized successfully.', course });
       return;
     } catch (error) {
       res.status(500).json({ message: 'Server Error' });

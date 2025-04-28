@@ -16,12 +16,14 @@ export class AuthController {
       }
 
       const hashedPassword = await bcrypt.hash(password, 10);
-      const newUser = new User({ fullName, email, password: hashedPassword });
+      const newUser = new User({
+        fullName,
+        email,
+        password: hashedPassword,
+      });
       await newUser.save();
 
-      const token = jwt.sign({ userId: newUser._id }, process.env.JWT_SECRET || 'your_jwt_secret');
-
-      res.status(201).json({ message: 'User created', token: `Bearer ${token}` });
+      res.status(201).json({ message: 'User created', userId: newUser._id });
     } catch (error) {
       res.status(500).json({ message: 'Internal server error' });
     }

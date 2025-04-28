@@ -16,7 +16,7 @@ router.get('/:assignmentId/:id', submissionController.getById);
 router.get(
   '/total/by/month/:userId',
 
-  submissionController.getTotalSubmissionsThisMonth,
+  submissionController.getTotalSubmissionsThisMonth
 );
 
 export default router;

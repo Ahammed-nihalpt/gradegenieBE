@@ -98,7 +98,7 @@ const courseSchema = new Schema<ICourse>(
     timestamps: true,
     toJSON: { virtuals: true }, // Include virtuals when document is converted to JSON
     toObject: { virtuals: true },
-  },
+  }
 );
 
 courseSchema.virtual('assignments', {

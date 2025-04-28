@@ -32,13 +32,15 @@ export const uploadMiddleware: Array<
           {
             public_id: uuidv4(),
             resource_type: 'auto',
-          },
+          }
         );
 
         // Add the file URL to the uploaded files array
         uploadedFiles.push(uploadResponse.secure_url);
       }
-      const fileProcessor = new FileProcessor(req.files as Express.Multer.File[]);
+      const fileProcessor = new FileProcessor(
+        req.files as Express.Multer.File[]
+      );
       const combinedText = await fileProcessor.extractAndCombineText();
       // Assign the array of file URLs to req.body.files
       req.body.files = uploadedFiles;

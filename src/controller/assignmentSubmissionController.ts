@@ -25,7 +25,11 @@ export class AssignmentSubmissionController {
             humanProbability: 0.85,
           },
           { section: 'Main Body', aiProbability: 0.08, humanProbability: 0.92 },
-          { section: 'Conclusion', aiProbability: 0.12, humanProbability: 0.88 },
+          {
+            section: 'Conclusion',
+            aiProbability: 0.12,
+            humanProbability: 0.88,
+          },
         ],
       };
 
@@ -34,7 +38,8 @@ export class AssignmentSubmissionController {
           name: 'Content',
           score: 0,
           maxScore: 100,
-          rationale: 'The essay covers the topic comprehensively and uses reliable sources.',
+          rationale:
+            'The essay covers the topic comprehensively and uses reliable sources.',
         },
         {
           name: 'Organization',
@@ -47,13 +52,15 @@ export class AssignmentSubmissionController {
           name: 'Grammar',
           score: 0,
           maxScore: 100,
-          rationale: 'A few minor grammatical errors, but generally well-written.',
+          rationale:
+            'A few minor grammatical errors, but generally well-written.',
         },
         {
           name: 'Citations',
           score: 0,
           maxScore: 100,
-          rationale: 'Sources are cited correctly, but could use more diverse references.',
+          rationale:
+            'Sources are cited correctly, but could use more diverse references.',
         },
       ];
 
@@ -128,14 +135,25 @@ export class AssignmentSubmissionController {
     }
   }
 
-  async getTotalSubmissionsThisMonth(req: Request, res: Response): Promise<void> {
+  async getTotalSubmissionsThisMonth(
+    req: Request,
+    res: Response
+  ): Promise<void> {
     try {
       const { userId } = req.params;
       const now = new Date();
 
       const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
 
-      const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+      const endOfMonth = new Date(
+        now.getFullYear(),
+        now.getMonth() + 1,
+        0,
+        23,
+        59,
+        59,
+        999
+      );
 
       const totalSubmissions = await Submission.aggregate([
         {
@@ -177,7 +195,10 @@ export class AssignmentSubmissionController {
 
       res.status(200).json({
         message: 'Total submissions this month fetched successfully',
-        total: totalSubmissions && totalSubmissions.length === 1 ? totalSubmissions[0].total : 0,
+        total:
+          totalSubmissions && totalSubmissions.length === 1
+            ? totalSubmissions[0].total
+            : 0,
       });
       return;
     } catch (err) {

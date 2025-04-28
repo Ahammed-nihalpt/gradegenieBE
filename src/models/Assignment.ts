@@ -30,7 +30,7 @@ const assignmentSchema = new Schema<IAssignment>(
     rubric: { type: String, required: false },
     status: { type: String, default: 'draft' },
   },
-  { timestamps: true },
+  { timestamps: true }
 );
 
 // ⭐ Add virtual populate
