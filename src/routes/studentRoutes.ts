@@ -1,5 +1,5 @@
 import express from 'express';
-import { StudentController } from '../controller/studentController'; // adjust path if needed
+import { StudentController } from '../controllers/studentController'; // adjust path if needed
 
 const router = express.Router();
 const studentController = new StudentController();

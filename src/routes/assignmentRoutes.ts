@@ -1,6 +1,6 @@
 import express from 'express';
 import { body } from 'express-validator';
-import { AIController } from '../controller/assignmentController';
+import { AIController } from '../controllers/assignmentController';
 
 const router = express.Router();
 const aiController = new AIController();

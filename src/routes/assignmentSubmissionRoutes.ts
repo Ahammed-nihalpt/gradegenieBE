@@ -1,6 +1,6 @@
 // src/routes/submissionRoutes.ts
 import express from 'express';
-import { AssignmentSubmissionController } from '../controller/assignmentSubmissionController';
+import { AssignmentSubmissionController } from '../controllers/assignmentSubmissionController';
 import { uploadMiddleware } from '../middleware/uploadMiddleware';
 
 const router = express.Router();
