@@ -64,7 +64,7 @@ npm install
 ### 2. Start in development
 
 ```bash
-npm run dev
+yarn dev
 ```
 
 ### 2. Build and run production
@@ -73,3 +73,16 @@ npm run dev
 npm run build
 npm start
 ```
+
+## ⚠️ Notes
+
+Some features mentioned in the original project brief were intentionally not implemented due to limited available time caused by ongoing commitments at my current job. These include:
+
+- LMS integrations (e.g., Moodle, Google Classroom)
+- Agentic workflows using frameworks like LangChain or CrewAI
+- Full API documentation (e.g., Swagger/Postman)
+- End-to-end testing coverage
+
+I prioritized building the core functionality — authentication, AI content generation, session persistence, and file handling — to demonstrate fullstack engineering and product thinking within the available development window.
+
+Further enhancements may be considered after submission.
