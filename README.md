@@ -86,3 +86,8 @@ Some features mentioned in the original project brief were intentionally not imp
 I prioritized building the core functionality — authentication, AI content generation, session persistence, and file handling — to demonstrate fullstack engineering and product thinking within the available development window.
 
 Further enhancements may be considered after submission.
+
+## 🌐 Deployed Links
+
+- **Frontend:** [https://gradegenie-delta.vercel.app/](https://gradegenie-delta.vercel.app/)
+- **Backend:** [https://gradegeniebe.onrender.com](https://gradegeniebe.onrender.com)
