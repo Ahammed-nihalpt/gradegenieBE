@@ -1,6 +1,5 @@
 import { Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
 import User from '../models/User';
 import { generateTokenForSftp } from '../utilities/jwt';
 
@@ -8,8 +7,9 @@ export class AuthController {
   async signup(req: Request, res: Response): Promise<void> {
     try {
       const { fullName, email, password } = req.body;
+      const normalizedEmail = email.toLowerCase();
 
-      const existingUser = await User.findOne({ email });
+      const existingUser = await User.findOne({ email: normalizedEmail });
       if (existingUser) {
         res.status(400).json({ message: 'User already exists' });
         return;
@@ -18,7 +18,7 @@ export class AuthController {
       const hashedPassword = await bcrypt.hash(password, 10);
       const newUser = new User({
         fullName,
-        email,
+        email: normalizedEmail,
         password: hashedPassword,
       });
       await newUser.save();
@@ -32,8 +32,9 @@ export class AuthController {
   async login(req: Request, res: Response): Promise<void> {
     try {
       const { email, password } = req.body;
+      const normalizedEmail = email.toLowerCase();
 
-      const user = await User.findOne({ email });
+      const user = await User.findOne({ email: normalizedEmail });
       if (!user) {
         res.status(400).json({ message: 'Invalid credentials' });
         return;
