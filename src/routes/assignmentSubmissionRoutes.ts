@@ -12,10 +12,11 @@ router.post('/add', uploadMiddleware, submissionController.createSubmission);
 // Route to edit an existing submission (e.g., updating grade/status)
 router.put('/edit/:id', submissionController.editSubmission);
 router.get('/:assignmentId/:id', submissionController.getById);
+router.get('/download/file/:id', submissionController.downloadFiles);
+router.put('/:id/recheck/ai', submissionController.recheckAIGrading);
 
 router.get(
   '/total/by/month/:userId',
-
   submissionController.getTotalSubmissionsThisMonth
 );
 

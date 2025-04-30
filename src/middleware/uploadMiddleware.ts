@@ -31,7 +31,7 @@ export const uploadMiddleware: Array<
           `data:${file.mimetype};base64,${fileBuffer.toString('base64')}`,
           {
             public_id: uuidv4(),
-            resource_type: 'auto',
+            resource_type: 'raw',
           }
         );
 

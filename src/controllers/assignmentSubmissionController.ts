@@ -2,6 +2,11 @@ import { Request, Response } from 'express';
 import { validationResult } from 'express-validator';
 import Submission from '../models/AssignmentSubmission'; // adjust the path if needed
 import mongoose from 'mongoose';
+import grading from '../services/ai/aiBulkGrading';
+import Assignment from '../models/Assignment';
+import axios from 'axios';
+import path from 'path';
+import { mapAiGradesToSubmission } from '../utilities/mapAiGradesToSubmission';
 
 export class AssignmentSubmissionController {
   // Create a new submission
@@ -12,57 +17,114 @@ export class AssignmentSubmissionController {
         res.status(400).json({ errors: errors.array() });
         return;
       }
+      let { files, ...submissionData } = req.body;
+      const assignment = await Assignment.findOne({
+        _id: submissionData.assignmentId,
+      }).populate('courseId', 'name');
+      if (!assignment) {
+        res.status(404).json({
+          message: 'Assignment not found',
+          error: 'Assignment not found',
+        });
+      }
+      const {
+        error,
+        message: aiError,
+        json: aiGrades,
+      } = await grading(
+        (assignment?.courseId as any)?.name,
+        assignment?.assignmentType || 'Eassy',
+        assignment?.rubric || '',
+        submissionData.content
+      );
 
-      const { files, ...submissionData } = req.body;
+      if (!aiGrades) {
+        res.status(500).json({ message: 'Something went wrong', error: '' });
+        return;
+      }
+      if (!error) {
+        // submissionData.aiCheckerResults = {
+        //   score: aiGrades.totalScore,
+        //   confidence: aiGrades.confidence,
+        //   details: [
+        //     {
+        //       section: 'Introduction',
+        //       aiProbability:
+        //         aiGrades.aiContentDetection.detailedAnalysis.introduction
+        //           .aiProbability,
+        //       humanProbability:
+        //         aiGrades.aiContentDetection.detailedAnalysis.introduction
+        //           .humanProbability,
+        //     },
+        //     {
+        //       section: 'Main Body',
+        //       aiProbability:
+        //         aiGrades.aiContentDetection.detailedAnalysis.introduction
+        //           .aiProbability,
+        //       humanProbability:
+        //         aiGrades.aiContentDetection.detailedAnalysis.introduction
+        //           .humanProbability,
+        //     },
+        //     {
+        //       section: 'Conclusion',
+        //       aiProbability:
+        //         aiGrades.aiContentDetection.detailedAnalysis.introduction
+        //           .aiProbability,
+        //       humanProbability:
+        //         aiGrades.aiContentDetection.detailedAnalysis.introduction
+        //           .humanProbability,
+        //     },
+        //   ],
+        // };
 
-      submissionData.aiCheckerResults = {
-        score: 92,
-        confidence: 'High',
-        details: [
-          {
-            section: 'Introduction',
-            aiProbability: 0.15,
-            humanProbability: 0.85,
-          },
-          { section: 'Main Body', aiProbability: 0.08, humanProbability: 0.92 },
-          {
-            section: 'Conclusion',
-            aiProbability: 0.12,
-            humanProbability: 0.88,
-          },
-        ],
-      };
+        // submissionData.subScores = [
+        //   {
+        //     name: 'Content',
+        //     score: aiGrades.subScores.contentUnderstanding.score,
+        //     maxScore: 100,
+        //     rationale: aiGrades.subScores.contentUnderstanding.feedback,
+        //   },
+        //   {
+        //     name: 'Organization',
+        //     score: aiGrades.subScores.organizationStructure.score,
+        //     maxScore: 100,
+        //     rationale: aiGrades.subScores.organizationStructure.feedback,
+        //   },
+        //   {
+        //     name: 'Grammar',
+        //     score: aiGrades.subScores.writingQuality.score,
+        //     maxScore: 100,
+        //     rationale: aiGrades.subScores.writingQuality.feedback,
+        //   },
+        //   {
+        //     name: 'Citations',
+        //     score: aiGrades.subScores.analysisCriticalThinking.score,
+        //     maxScore: 100,
+        //     rationale: aiGrades.subScores.analysisCriticalThinking.feedback,
+        //   },
+        // ];
 
-      submissionData.subScores = [
-        {
-          name: 'Content',
-          score: 0,
-          maxScore: 100,
-          rationale:
-            'The essay covers the topic comprehensively and uses reliable sources.',
-        },
-        {
-          name: 'Organization',
-          score: 0,
-          maxScore: 100,
-          rationale:
-            'Good structure overall, but transitions between paragraphs could be smoother.',
-        },
-        {
-          name: 'Grammar',
-          score: 0,
-          maxScore: 100,
-          rationale:
-            'A few minor grammatical errors, but generally well-written.',
-        },
-        {
-          name: 'Citations',
-          score: 0,
-          maxScore: 100,
-          rationale:
-            'Sources are cited correctly, but could use more diverse references.',
-        },
-      ];
+        // submissionData.integrityCheck = {
+        //   plagiarism: {
+        //     originalityScore: aiGrades.plagiarismCheck.originalityScore,
+        //     matchedContent: {
+        //       sentence: aiGrades.plagiarismCheck.matchedContent.sentence,
+        //       source: aiGrades.plagiarismCheck.matchedContent.source,
+        //       matchScore: aiGrades.plagiarismCheck.matchedContent.matchScore,
+        //     },
+        //   },
+        // };
+
+        // submissionData.overallFeedback = {
+        //   strengths: aiGrades?.feedback?.strengths,
+        //   areasforImprovement: aiGrades?.feedback?.areasforImprovement,
+        //   actionItems: aiGrades?.feedback?.actionItems,
+        // };
+
+        submissionData = mapAiGradesToSubmission(submissionData, aiGrades);
+      } else if (error) {
+        submissionData.aiError = aiError;
+      }
 
       submissionData.fileUrl = files || []; // Assign the uploaded file URLs to the submission data
 
@@ -75,6 +137,64 @@ export class AssignmentSubmissionController {
       });
     } catch (err) {
       console.error('Error creating submission:', err);
+      res.status(500).json({ message: 'Server error', error: err });
+    }
+  }
+
+  async recheckAIGrading(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+
+      const submission = await Submission.findById(id);
+      if (!submission) {
+        res.status(404).json({ message: 'Submission not found' });
+        return;
+      }
+
+      const assignment = await Assignment.findById(
+        submission.assignmentId
+      ).populate('courseId', 'name');
+
+      if (!assignment) {
+        res.status(404).json({ message: 'Assignment not found' });
+        return;
+      }
+
+      const {
+        error,
+        message: aiError,
+        json: aiGrades,
+      } = await grading(
+        (assignment?.courseId as any)?.name,
+        assignment?.assignmentType || 'Essay',
+        assignment?.rubric || '',
+        submission?.content || ''
+      );
+
+      if (error) {
+        submission.aiError = aiError;
+        await submission.save();
+        res.status(200).json({
+          message: 'AI recheck completed with error',
+          aiError,
+          data: submission,
+        });
+        return;
+      }
+      if (!aiGrades) {
+        res.status(500).json({ message: 'Server error', error: '' });
+        return;
+      }
+      mapAiGradesToSubmission(submission, aiGrades);
+      submission.aiError = '';
+      await submission.save();
+
+      res.status(200).json({
+        message: 'AI recheck successful',
+        data: submission,
+      });
+    } catch (err) {
+      console.error('Error during AI recheck:', err);
       res.status(500).json({ message: 'Server error', error: err });
     }
   }
@@ -119,7 +239,14 @@ export class AssignmentSubmissionController {
     try {
       const { id, assignmentId } = req.params;
 
-      const submission = await Submission.findOne({ assignmentId, _id: id });
+      const submission = await Submission.findOne({
+        assignmentId,
+        _id: id,
+      }).populate({
+        path: 'studentId', // populate inside each submission
+        model: 'Student', // model name of Student
+        select: 'name email', // 🔥 select only needed fields (optional)
+      });
       if (!submission) {
         res.status(404).json({ message: 'Submission not found' });
         return;
@@ -205,6 +332,34 @@ export class AssignmentSubmissionController {
       console.error('Error fetching total submissions:', err);
       res.status(500).json({ message: 'Server error', error: err });
       return;
+    }
+  }
+
+  async downloadFiles(req: Request, res: Response): Promise<void> {
+    try {
+      const { id } = req.params;
+      const submission = await Submission.findOne({
+        _id: id,
+      });
+
+      if (!submission?.fileUrl?.length || submission?.fileUrl?.length <= 0) {
+        res.status(400).json({ error: 'No file found' });
+        return;
+      }
+      const response = await axios.get(submission?.fileUrl?.[0] || '', {
+        responseType: 'stream',
+      });
+
+      const fileName = path.basename(submission?.fileUrl?.[0]);
+      res.setHeader(
+        'Content-Disposition',
+        `attachment; filename="${fileName}"`
+      );
+      res.setHeader('Content-Type', response.headers['content-type']);
+
+      response.data.pipe(res);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to download file' });
     }
   }
 }

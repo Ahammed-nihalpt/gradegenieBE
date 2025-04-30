@@ -40,6 +40,7 @@ interface ISubmission extends Document {
   fileName?: string;
   fileUrl?: string[];
   score?: number;
+  aiError?: string;
   content?: string;
   aiCheckerResults?: AICheckerResults[];
   comments?: {
@@ -67,12 +68,12 @@ interface ISubmission extends Document {
       flaggedPhrases?: string[];
     };
     plagiarism?: {
-      matchPercentage?: number;
-      sources?: Array<{
-        url?: string;
-        matchPercentage?: number;
-        title?: string;
-      }>;
+      originalityScore: number;
+      matchedContent: {
+        sentence: string;
+        source: string;
+        matchScore: number;
+      };
     };
   };
 }
@@ -143,6 +144,7 @@ const submissionSchema = new Schema<ISubmission>(
       enum: ['Graded', 'Pending', 'In Progress'],
       default: 'Pending',
     },
+    aiError: { type: String },
     submissionTime: { type: String },
     integrityCheck: {
       status: {
@@ -156,14 +158,12 @@ const submissionSchema = new Schema<ISubmission>(
         flaggedPhrases: [{ type: String }],
       },
       plagiarism: {
-        matchPercentage: { type: Number },
-        sources: [
-          {
-            url: { type: String },
-            matchPercentage: { type: Number },
-            title: { type: String },
-          },
-        ],
+        originalityScore: { type: Number },
+        matchedContent: {
+          sentence: { type: String },
+          source: { type: String },
+          matchScore: { type: String },
+        },
       },
     },
   },
