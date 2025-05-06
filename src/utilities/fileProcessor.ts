@@ -2,36 +2,37 @@ import Tesseract from 'tesseract.js';
 import pdfParse from 'pdf-parse';
 
 export class FileProcessor {
-  private files: Express.Multer.File[];
+  private file: Express.Multer.File;
 
-  constructor(files: Express.Multer.File[]) {
-    this.files = files;
+  constructor(file: Express.Multer.File) {
+    this.file = file;
   }
 
-  // Method to identify the file type based on the file buffer
+  // Identify file type (PDF or image)
   private identifyFileType(buffer: Buffer): string {
     const magicBytes = buffer.slice(0, 4).toString('hex');
 
     if (magicBytes.startsWith('ffd8')) {
-      return 'image'; // JPEG image
+      return 'image'; // JPEG
     } else if (magicBytes.startsWith('2550')) {
       return 'pdf'; // PDF
     }
     return 'unknown';
   }
 
-  // Method to extract text from image using OCR
+  // OCR for images
   private async extractTextFromImage(buffer: Buffer): Promise<string> {
-    return new Promise((resolve, reject) => {
-      Tesseract.recognize(buffer, 'eng', { logger: (m) => console.log(m) })
-        .then(({ data: { text } }) => {
-          resolve(text);
-        })
-        .catch((error) => reject(error));
-    });
+    try {
+      const result = await Tesseract.recognize(buffer, 'eng', {
+        logger: (m) => console.log(m),
+      });
+      return result.data.text;
+    } catch (error) {
+      throw new Error('Error extracting text from image: ' + error);
+    }
   }
 
-  // Method to extract text from PDF file
+  // Text extraction from PDF
   private async extractTextFromPdf(buffer: Buffer): Promise<string> {
     try {
       const pdfData = await pdfParse(buffer);
@@ -41,25 +42,17 @@ export class FileProcessor {
     }
   }
 
-  // Method to extract and combine text from all files
-  public async extractAndCombineText(): Promise<string> {
-    const textPromises: Promise<string>[] = this.files.map(async (file) => {
-      const fileType = this.identifyFileType(file.buffer);
+  // Main method to extract text based on file type
+  public async extractText(): Promise<string> {
+    const buffer = this.file.buffer;
+    const fileType = this.identifyFileType(buffer);
 
-      if (fileType === 'image') {
-        return this.extractTextFromImage(file.buffer);
-      } else if (fileType === 'pdf') {
-        return this.extractTextFromPdf(file.buffer);
-      } else {
-        return ''; // Unknown file type
-      }
-    });
-
-    try {
-      const texts = await Promise.all(textPromises);
-      return texts.join(' ');
-    } catch (error) {
-      throw new Error('Error extracting or combining text: ' + error);
+    if (fileType === 'image') {
+      return await this.extractTextFromImage(buffer);
+    } else if (fileType === 'pdf') {
+      return await this.extractTextFromPdf(buffer);
+    } else {
+      throw new Error('Unsupported file type');
     }
   }
 }

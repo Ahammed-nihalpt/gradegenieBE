@@ -17,52 +17,67 @@ export class AssignmentSubmissionController {
         res.status(400).json({ errors: errors.array() });
         return;
       }
-      let { files, ...submissionData } = req.body;
+
+      const { files, ...baseSubmissionData } = req.body;
+
       const assignment = await Assignment.findOne({
-        _id: submissionData.assignmentId,
+        _id: baseSubmissionData.assignmentId,
       }).populate('courseId', 'name');
+
       if (!assignment) {
         res.status(404).json({
           message: 'Assignment not found',
           error: 'Assignment not found',
         });
-      }
-      const {
-        error,
-        message: aiError,
-        json: aiGrades,
-      } = await grading(
-        (assignment?.courseId as any)?.name,
-        assignment?.assignmentType || 'Eassy',
-        assignment?.rubric || '',
-        submissionData.content
-      );
-
-      if (!aiGrades) {
-        res.status(500).json({ message: 'Something went wrong', error: '' });
         return;
       }
-      if (!error) {
-        submissionData = mapAiGradesToSubmission(submissionData, aiGrades);
-      } else if (error) {
-        submissionData.aiError = aiError;
+
+      const courseName = (assignment.courseId as any)?.name;
+      const assignmentType = assignment.assignmentType || 'Essay';
+      const rubric = assignment.rubric || '';
+
+      const preparedSubmissions: any[] = [];
+
+      for (const file of files) {
+        const {
+          error,
+          message: aiError,
+          json: aiGrades,
+        } = await grading(courseName, assignmentType, rubric, file.content);
+
+        if (!aiGrades) {
+          res.status(500).json({
+            message: aiError || 'AI grading failed',
+            error: aiError || 'Unknown error',
+          });
+          return;
+        }
+
+        const submissionPayload = {
+          ...baseSubmissionData,
+          fileUrl: file.file || [],
+          content: file.content,
+          status: 'New',
+          ...(error ? { aiError } : mapAiGradesToSubmission({}, aiGrades)),
+        };
+
+        preparedSubmissions.push(submissionPayload);
       }
 
-      submissionData.fileUrl = files || []; // Assign the uploaded file URLs to the submission data
-
-      const submission = new Submission(submissionData);
-      await submission.save();
+      // All grading successful, save all to DB
+      const savedSubmissions = await Submission.insertMany(preparedSubmissions);
 
       res.status(201).json({
-        message: 'Submission created successfully',
-        data: submission,
+        message: 'Submissions created successfully',
+        data: savedSubmissions,
       });
+      return;
     } catch (err) {
       console.error('Error creating submission:', err);
       res.status(500).json({ message: 'Server error', error: err });
+      return;
     }
   }
-
   async recheckAIGrading(req: Request, res: Response): Promise<void> {
     try {
       const { id } = req.params;

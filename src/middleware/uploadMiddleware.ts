@@ -20,7 +20,7 @@ export const uploadMiddleware: Array<
     }
 
     try {
-      const uploadedFiles: string[] = [];
+      const uploadedFiles: { file: string; content: string }[] = [];
 
       // Loop through the uploaded files and upload each to Cloudinary
       for (const file of req.files as Express.Multer.File[]) {
@@ -36,15 +36,15 @@ export const uploadMiddleware: Array<
         );
 
         // Add the file URL to the uploaded files array
-        uploadedFiles.push(uploadResponse.secure_url);
+        const fileProcessor = new FileProcessor(file as Express.Multer.File);
+        const combinedText = await fileProcessor.extractText();
+        uploadedFiles.push({
+          file: uploadResponse.secure_url,
+          content: combinedText,
+        });
       }
-      const fileProcessor = new FileProcessor(
-        req.files as Express.Multer.File[]
-      );
-      const combinedText = await fileProcessor.extractAndCombineText();
       // Assign the array of file URLs to req.body.files
       req.body.files = uploadedFiles;
-      req.body.content = combinedText;
 
       // Proceed to the next middleware or route handler
       next();

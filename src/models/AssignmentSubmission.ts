@@ -58,7 +58,7 @@ interface ISubmission extends Document {
   inlineComments?: InlineComment[]; // Added field for inline comments
   subScores?: SubScore[]; // Added field for sub-scores
   overallFeedback?: OverallFeedback; // Added field for overall feedback
-  status?: 'Graded' | 'Pending' | 'In Progress';
+  status?: 'Graded' | 'Pending' | 'In Progress' | 'New';
   submissionTime?: string;
   integrityCheck?: {
     status?: 'Clear' | 'Flagged' | 'Checking...' | 'Not Run';
@@ -141,7 +141,7 @@ const submissionSchema = new Schema<ISubmission>(
     },
     status: {
       type: String,
-      enum: ['Graded', 'Pending', 'In Progress'],
+      enum: ['Graded', 'Pending', 'In Progress', 'New'],
       default: 'Pending',
     },
     aiError: { type: String },
